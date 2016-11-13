@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<title>扫雷游戏</title>
+	<script src="jquery.js"></script>
+	<script>
+     $(function(){
+        var count=10;
+     do{
+     	$(".scene").empty();
+     	for (var i = 0; i < 10; i++) {
+     		for (var j = 0; j < 10; j++) {
+     			var islei=Math.random()>0.9;
+     			$("<div></div>").addClass(function(){
+     				return "block"+(islei?" lei":"")   //给是雷的添加类名lei
+     			}).mousedown(mousedownhandler)   
+     			.data("pos",{x:i,y:j})    //绑定数据
+     			.attr("id",i+"-"+j)    //给附近的块添加id
+     			.appendTo(".scene")
+     		};
+     	};
+    }while($(".lei").length!=count)
+
+     	function mousedownhandler(e){
+     		e.preventDefault()   //阻止浏览器默认行为
+     		if(e.which==1){
+     			leftclick.call(this);
+     		}else if(e.which==3){
+     			rightclick.call(this);
+     		}				
+     	}
+     	function leftclick(){
+     		if($(this).hasClass("flag")){
+     			return;
+     		}
+     		if($(this).hasClass("lei")){
+     			// alert("lose")
+     		 //    $(".lei").addClass("show")
+     		    lose()
+     		} else{
+     			$(this).addClass("num")
+	     		var n=0;
+	     		var pos=$(this).data("pos")   //获取当前点击块的数据
+	     		// $("#"+pos.x-1+"-"+(pos.y-1))
+	     		// $("#"+pos.x+"-"+(pos.y))
+	     		// $("#"+pos.x+1+"-"+(pos.y+1))
+	     		for (var i = pos.x-1; i <= pos.x+1; i++) {
+	     			for (var j = pos.y-1; j <= pos.y+1; j++) {
+	     				if($("#"+i+"-"+j).hasClass("lei")){   //判断附近是否是雷
+	     					n++;
+	     				}
+	     		    }
+	     		}
+	     		$(this).text(n)
+	     		if(n==0){
+	     			for (var i = pos.x-1; i <= pos.x+1; i++) {
+		     			for (var j = pos.y-1; j <= pos.y+1; j++) {
+		     				if($("#"+i+"-"+j).length!=0){  //能获取到元素
+		     					if(!$("#"+i+"-"+j).data("check")){  //假  执行/
+		     						$("#"+i+"-"+j).data("check",true); 
+		     						leftclick.call($("#"+i+"-"+j)[0]);
+		     					}
+		     				}
+		     		    }
+	     		    }
+	     		}
+     		}   
+     	}
+     	function rightclick(){
+     		if($(this).hasClass("num")){
+     			return;
+     		}
+     		if($(this).hasClass("flag")){
+     			$(".flagbox").text(function(index,n){
+	        		var num=parseInt(n);
+	        		return ++num;
+	        	})
+     		}else{
+                if($(".flag").length==count){
+                    return;
+                }
+     			$(".flagbox").text(function(index,n){
+	        		var num=parseInt(n);
+	        		return --num;
+	        	})
+     		}
+     		$(this).toggleClass("flag")
+
+            if($(".flag").filter(".lei").length==count){
+                    alert("success")
+                }
+
+     	}
+     	//contextmenu  菜单信息
+     	// addEventListener("click")
+     	$(document).on("contextmenu",false)   //阻止
+
+        var t=setInterval(function(){
+        	$(".time").text(function(index,n){
+        		var num=parseInt(n);
+        		return --num;
+        	})
+        	if($(".time").text()==0){
+        		// alert("lose");
+        		// clearInterval(t);
+        		lose()
+        	}
+        },1000)
+
+        function lose(){
+        	alert("lose");
+        	clearInterval(t);
+        	$(".lei").addClass("show");
+        	$(".block:not(.lei)").addClass("num");
+        	$(".scene").css("transform","none").css({
+        		border:"none",
+        		boxShadow:"none"
+        	});
+        	$(".block").each(function(index){
+        		$(this).css({border:0});
+        		var left=Math.random()*600-300;
+        		var top=Math.random()*200-100;
+        		var deg=Math.random()*90;
+        		$(this).animate({left:left,top:top},500,function(){
+        			$(this).css("transform","rotate("+deg+"deg)");
+        		})
+        	})
+
+        }
+
+     })
+	</script>
+</head>
+<style>
+html,body{
+	height: 100%;
+	transform-style:presrvee-3d;
+	/*background:linear-gradient(to bottom,blue,#fff);*/
+    background: url(images/saoleibg1.jpg) no-repeat;
+    background-size:100% 100%;
+	overflow: hidden;
+}
+	.scene{
+		transform:perspective(800px) rotatex(30deg);
+		width:500px;
+		height:500px;
+		/*margin:0 auto;*/
+        margin-top: 10px;
+        margin-left: 400px;
+		border-top: 1px solid #000;
+		border-left: 1px solid #000;
+		box-shadow:5px 5px 5px #333;
+		position: relative;
+        background:linear-gradient(to bottom,#8BF2F7,#E8A83A);
+	}
+    .block{
+    	width:49px;
+    	height:49px;
+        /*background:#BF83F0;*/
+    	/*background:#5EECFE;*/
+    	border-right: 1px solid #000;
+		border-bottom: 1px solid #000;
+		float: left;
+		box-shadow:0px 0px 5px #ccc gold inset;
+		cursor: pointer;
+		position: relative;
+
+    }
+    .show{
+    	width:49px;
+    	height:49px;
+        /*background-image:url(images/lei.jpg);*/
+    	background-image:url(images/lei.gif);
+        background-size:100% 100%;
+    }
+    .num{
+    	background: #fff;
+    	text-align: center;
+    	line-height: 50px;
+    	font-weight: bold;
+    	font-size: 18px;
+    	color:red;
+    }
+    .time{
+        width: 100px;
+        height:50px;
+        position:absolute;
+        right:300px;
+        top:50px;
+        text-align: center;
+        line-height: 50px;
+        font-size:26px;
+        color:#000;
+        font-weight: bold;
+        border:2px solid #000;
+    }
+    .flagbox{
+        width: 70px;
+        height:50px;
+        position:absolute;
+        padding-left: 30px;
+        right:300px;
+        top:120px;
+        text-align:center;
+        line-height: 50px;
+        font-size:26px;
+        color:#000;
+        font-weight: bold;
+        border:2px solid #000;
+        background:url(images/hongqi.png) 10px no-repeat;
+        background-size:30px 30px;
+    }
+    .flag{
+    	background:url(images/hongqi.png) 10px no-repeat #fff;
+    	background-size:30px 30px;
+    }
+
+</style>
+<body>
+	<div class="scene"></div>
+	<div class="time">200</div>
+	<div class="flagbox">10</div>
+</body>
+</html>
